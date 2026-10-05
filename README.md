@@ -1,4 +1,4 @@
-# Photowalk
+# imgutils
 
 A client-side batch image compressor and framer. Drop in camera photos, resize
 them, frame them to a social aspect ratio, and export the result.

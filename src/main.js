@@ -340,7 +340,7 @@ async function downloadZip() {
       taken.add(name)
       archive[name] = new Uint8Array(await item.result.blob.arrayBuffer())
     }
-    saveBlob(new Blob([zipSync(archive, { level: 0 })], { type: 'application/zip' }), `photowalk-${timestamp()}.zip`)
+    saveBlob(new Blob([zipSync(archive, { level: 0 })], { type: 'application/zip' }), `imgutils-${timestamp()}.zip`)
   } finally {
     elements.zip.disabled = false
   }

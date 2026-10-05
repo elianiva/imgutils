@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Photowalk</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111'/%3E%3Crect x='4' y='4' width='8' height='8' fill='none' stroke='%23fff'/%3E%3C/svg%3E"
+    />
+    <script type="module" src="/src/main.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <h1>Photowalk</h1>
+      </div>
+      <p id="summary" class="summary"></p>
+      <div class="topbar-actions">
+        <button type="button" id="reprocess" class="btn" hidden></button>
+        <button type="button" id="add" class="btn btn-primary">Add images</button>
+        <button type="button" id="zip" class="btn" disabled>Download .zip</button>
+        <button type="button" id="clear" class="btn btn-quiet" disabled>Clear</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <details id="settings-panel" class="panel">
+        <summary class="panel-summary">Settings</summary>
+        <form id="settings" autocomplete="off">
+          <section class="field-group">
+            <h2 class="group-title">Resize</h2>
+            <div class="field">
+              <label for="width">Width (px)</label>
+              <input id="width" name="width" type="number" min="100" max="8000" step="10" value="1080" />
+            </div>
+            <div class="field">
+              <label for="method">Method</label>
+              <select id="method" name="method">
+                <option value="lanczos3" selected>Lanczos3</option>
+                <option value="mitchell">Mitchell</option>
+                <option value="catrom">Catmull-Rom</option>
+                <option value="triangle">Triangle</option>
+              </select>
+            </div>
+          </section>
+
+          <section class="field-group">
+            <h2 class="group-title">Output</h2>
+            <div class="field">
+              <label for="format">Format</label>
+              <select id="format" name="format">
+                <option value="jpeg" selected>JPEG</option>
+                <option value="webp">WebP</option>
+                <option value="png">PNG</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="field-head">
+                <label for="quality">Quality</label>
+                <output id="quality-value" for="quality">90</output>
+              </div>
+              <input id="quality" name="quality" type="range" min="1" max="100" step="1" value="90" />
+            </div>
+          </section>
+
+          <section class="field-group">
+            <h2 class="group-title">Frame</h2>
+            <div class="field">
+              <label for="frame">Aspect ratio</label>
+              <select id="frame" name="frame">
+                <option value="original" selected>Original</option>
+                <option value="1:1">1:1</option>
+                <option value="4:5">4:5</option>
+                <option value="5:4">5:4</option>
+                <option value="3:2">3:2</option>
+                <option value="2:3">2:3</option>
+                <option value="16:9">16:9</option>
+                <option value="9:16">9:16</option>
+              </select>
+              <p class="hint" id="frame-hint"></p>
+            </div>
+            <div class="field">
+              <label for="background">Background</label>
+              <input id="background" name="background" type="color" value="#ffffff" />
+            </div>
+          </section>
+
+          <section class="field-group">
+            <h2 class="group-title">Border</h2>
+            <div class="field">
+              <div class="field-head">
+                <label for="borderPercent">Width</label>
+                <output id="border-value" for="borderPercent">0%</output>
+              </div>
+              <input id="borderPercent" name="borderPercent" type="range" min="0" max="20" step="0.5" value="0" />
+            </div>
+            <div class="field">
+              <label for="borderColor">Color</label>
+              <input id="borderColor" name="borderColor" type="color" value="#ffffff" />
+            </div>
+            <p class="hint" id="border-hint">Drawn outside the frame. The output width stays on target.</p>
+          </section>
+        </form>
+      </details>
+
+      <section class="workspace">
+        <input id="files" type="file" accept="image/*" multiple hidden />
+
+        <div id="drop" class="drop" role="button" tabindex="0">
+          <p class="drop-title">Drop images here</p>
+          <p class="drop-hint">or <span class="link">choose files</span> · JPEG, PNG, WebP, AVIF</p>
+        </div>
+
+        <div id="progress" class="progress" hidden>
+          <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+          <p id="progress-label" class="progress-label"></p>
+        </div>
+
+        <ul id="results" class="results"></ul>
+      </section>
+    </main>
+
+    <dialog id="preview" class="preview">
+      <div class="preview-grid">
+        <figure>
+          <div class="preview-frame"><img id="preview-original" alt="Original" /></div>
+          <figcaption id="preview-original-meta"></figcaption>
+        </figure>
+        <figure>
+          <div class="preview-frame"><img id="preview-output" alt="Output" /></div>
+          <figcaption id="preview-output-meta"></figcaption>
+        </figure>
+      </div>
+      <footer class="preview-footer">
+        <p id="preview-name" class="preview-name"></p>
+        <button type="button" id="preview-close" class="btn">Close</button>
+      </footer>
+    </dialog>
+
+    <template id="card-template">
+      <li class="card">
+        <button class="thumb" type="button">
+          <img alt="" />
+          <span class="badge"></span>
+        </button>
+        <div class="card-body">
+          <p class="card-name"></p>
+          <p class="card-meta">
+            <span class="card-dims"></span>
+            <span class="card-sizes"></span>
+          </p>
+        </div>
+        <a class="btn btn-small card-save" download>Save</a>
+        <button class="btn btn-small card-retry" type="button" hidden>Retry</button>
+      </li>
+    </template>
+  </body>
+</html>

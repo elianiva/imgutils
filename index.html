@@ -10,18 +10,22 @@
     />
     <script type="module" src="/src/main.js"></script>
   </head>
-  <body>
+  <body data-mode="single">
     <header class="topbar">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true"></span>
         <h1>imgutils</h1>
       </div>
+      <div class="tabs" role="tablist" aria-label="Mode">
+        <button type="button" id="tab-single" class="tab is-active" role="tab" aria-selected="true">Single</button>
+        <button type="button" id="tab-collage" class="tab" role="tab" aria-selected="false">Collage</button>
+      </div>
       <p id="summary" class="summary"></p>
       <div class="topbar-actions">
-        <button type="button" id="reprocess" class="btn" hidden></button>
-        <button type="button" id="add" class="btn btn-primary">Add images</button>
-        <button type="button" id="zip" class="btn" disabled>Download .zip</button>
-        <button type="button" id="clear" class="btn btn-quiet" disabled>Clear</button>
+        <button type="button" id="reprocess" class="btn only-single" hidden></button>
+        <button type="button" id="add" class="btn btn-primary only-single">Add images</button>
+        <button type="button" id="zip" class="btn only-single" disabled>Download .zip</button>
+        <button type="button" id="clear" class="btn btn-quiet only-single" disabled>Clear</button>
       </div>
     </header>
 
@@ -35,7 +39,7 @@
               <label for="width">Width (px)</label>
               <input id="width" name="width" type="number" min="100" max="8000" step="10" value="1080" />
             </div>
-            <div class="field">
+            <div class="field only-single">
               <label for="method">Method</label>
               <select id="method" name="method">
                 <option value="lanczos3" selected>Lanczos3</option>
@@ -67,7 +71,7 @@
 
           <section class="field-group">
             <h2 class="group-title">Frame</h2>
-            <div class="field">
+            <div class="field only-single">
               <label for="frame">Aspect ratio</label>
               <select id="frame" name="frame">
                 <option value="original" selected>Original</option>
@@ -84,6 +88,7 @@
             <div class="field">
               <label for="background">Background</label>
               <input id="background" name="background" type="color" value="#ffffff" />
+              <p class="hint only-collage">Fills the gaps between collage photos.</p>
             </div>
           </section>
 
@@ -108,17 +113,120 @@
       <section class="workspace">
         <input id="files" type="file" accept="image/*" multiple hidden />
 
-        <div id="drop" class="drop" role="button" tabindex="0">
-          <p class="drop-title">Drop images here</p>
-          <p class="drop-hint">or <span class="link">choose files</span> · JPEG, PNG, WebP, AVIF</p>
+        <div id="single-view">
+          <div id="drop" class="drop" role="button" tabindex="0">
+            <p class="drop-title">Drop images here</p>
+            <p class="drop-hint">or <span class="link">choose files</span> · JPEG, PNG, WebP, AVIF</p>
+          </div>
+
+          <div id="progress" class="progress" hidden>
+            <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+            <p id="progress-label" class="progress-label"></p>
+          </div>
+
+          <ul id="results" class="results"></ul>
         </div>
 
-        <div id="progress" class="progress" hidden>
-          <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
-          <p id="progress-label" class="progress-label"></p>
-        </div>
+        <div id="collage-view" hidden>
+          <input id="collage-files" type="file" accept="image/*" multiple hidden />
+          <input id="cell-file" type="file" accept="image/*" hidden />
 
-        <ul id="results" class="results"></ul>
+          <div class="collage-builder">
+            <div class="collage-preview">
+              <canvas id="collage-canvas" aria-label="Collage preview. Drag a photo to reposition it inside its cell."></canvas>
+              <p class="hint" id="collage-meta"></p>
+              <p class="hint">Drag a photo to pan it · scroll over it to zoom · drag a thumbnail below to reorder</p>
+            </div>
+
+            <div class="collage-controls">
+              <section class="field-group">
+                <h2 class="group-title">Canvas</h2>
+                <div class="field">
+                  <label for="collage-ratio">Aspect ratio</label>
+                  <select id="collage-ratio">
+                    <option value="1:1" selected>1:1 · Instagram square</option>
+                    <option value="4:5">4:5 · Instagram portrait</option>
+                    <option value="3:4">3:4 · Portrait</option>
+                    <option value="2:3">2:3 · Portrait</option>
+                    <option value="3:2">3:2 · Landscape</option>
+                    <option value="16:9">16:9 · Landscape</option>
+                    <option value="9:16">9:16 · Story</option>
+                  </select>
+                  <p class="hint" id="collage-size-hint"></p>
+                </div>
+                <div class="field">
+                  <div class="field-head">
+                    <label for="collage-gap">Gap</label>
+                    <output id="collage-gap-value" for="collage-gap">2%</output>
+                  </div>
+                  <input id="collage-gap" type="range" min="0" max="8" step="0.5" value="2" />
+                </div>
+              </section>
+
+              <section class="field-group">
+                <h2 class="group-title">Layout</h2>
+                <div id="template-picker" class="templates" role="group" aria-label="Collage templates"></div>
+                <div class="grid-size">
+                  <div class="field">
+                    <label for="grid-cols">Columns</label>
+                    <input id="grid-cols" type="number" min="1" max="4" step="1" value="2" />
+                  </div>
+                  <div class="field">
+                    <label for="grid-rows">Rows</label>
+                    <input id="grid-rows" type="number" min="1" max="4" step="1" value="2" />
+                  </div>
+                </div>
+                <p class="hint">Columns × rows make a custom N×M grid. Picking a template above sets them for you.</p>
+              </section>
+
+              <section class="field-group">
+                <h2 class="group-title">Photos <span id="cell-count" class="count"></span></h2>
+                <div class="cell-actions">
+                  <button type="button" id="collage-add" class="btn btn-primary btn-small">Add photos</button>
+                  <button type="button" id="collage-shuffle" class="btn btn-small">Shuffle</button>
+                  <button type="button" id="collage-clear" class="btn btn-small btn-quiet">Clear</button>
+                </div>
+                <ul id="cell-list" class="cells"></ul>
+              </section>
+
+              <section class="field-group">
+                <h2 class="group-title">Selected photo</h2>
+                <div class="field">
+                  <div class="field-head">
+                    <label for="cell-zoom">Zoom</label>
+                    <output id="cell-zoom-value" for="cell-zoom">100%</output>
+                  </div>
+                  <input id="cell-zoom" type="range" min="100" max="300" step="1" value="100" />
+                </div>
+                <div class="field">
+                  <div class="field-head">
+                    <label for="cell-fx">Position X</label>
+                    <output id="cell-fx-value" for="cell-fx">50</output>
+                  </div>
+                  <input id="cell-fx" type="range" min="0" max="100" step="1" value="50" />
+                </div>
+                <div class="field">
+                  <div class="field-head">
+                    <label for="cell-fy">Position Y</label>
+                    <output id="cell-fy-value" for="cell-fy">50</output>
+                  </div>
+                  <input id="cell-fy" type="range" min="0" max="100" step="1" value="50" />
+                </div>
+                <div class="cell-actions">
+                  <button type="button" id="cell-left" class="btn btn-small" title="Move photo one cell left">← Move</button>
+                  <button type="button" id="cell-right" class="btn btn-small" title="Move photo one cell right">Move →</button>
+                  <button type="button" id="cell-reset" class="btn btn-small btn-quiet">Reset view</button>
+                </div>
+              </section>
+
+              <section class="field-group">
+                <h2 class="group-title">Export</h2>
+                <button type="button" id="collage-save" class="btn btn-primary">Save collage</button>
+                <p class="hint" id="collage-status"></p>
+              </section>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
 
@@ -154,6 +262,20 @@
         </div>
         <a class="btn btn-small card-save" download>Save</a>
         <button class="btn btn-small card-retry" type="button" hidden>Retry</button>
+      </li>
+    </template>
+
+    <template id="cell-template">
+      <li class="cell" draggable="true">
+        <button class="cell-thumb" type="button" title="Select this photo">
+          <img alt="" />
+          <span class="cell-index"></span>
+          <span class="cell-empty" hidden>+</span>
+        </button>
+        <div class="cell-buttons">
+          <button class="cell-replace linklike" type="button">Replace</button>
+          <button class="cell-remove linklike" type="button" aria-label="Remove photo">✕</button>
+        </div>
       </li>
     </template>
   </body>

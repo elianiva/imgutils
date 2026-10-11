@@ -27,6 +27,15 @@ pnpm preview   # serve the production bundle
   shrinks to make room.
 - Monochrome, square-cornered layout that works on a phone: the settings panel
   collapses, results show two per row, and the actions sit in a bottom bar.
+- Collage mode for single-image Instagram posts. Pick an aspect ratio
+  (1:1, 4:5, 9:16, …), a template (2 side-by-side, 2×2, feature-left
+  mosaics, …) or dial in a custom N×M grid with the columns/rows steppers.
+  Each photo cover-fills its cell and can be repositioned: drag it inside
+  the preview, scroll to zoom, use the zoom/position sliders, or drag
+  thumbnails (or the ← Move / Move → buttons) to reorder across the grid.
+  Gap width, background, border, output width, and format are shared with
+  the single-photo settings, and export runs in a worker like everything
+  else.
 
 ## How the pipeline works
 
@@ -52,12 +61,13 @@ and is centered on the frame.
 ## Layout
 
 ```
-index.html          markup and the settings form
-src/main.js         state, settings, worker pool, downloads
-src/pipeline.js     decode, resize, frame, border, encode (worker side)
-src/worker.js       worker message handler
+index.html          markup, the settings form, and the collage builder
+src/main.js         state, settings, worker pool, downloads, collage UI
+src/pipeline.js     decode, resize, frame, border, collage, encode (worker side)
+src/worker.js       worker message handler (single + collage jobs)
 src/pool.js         worker pool with bounded concurrency
 src/geometry.js     frame ratios and size math
+src/collage.js      collage templates, grid layout, cover-crop math
 src/format.js       byte and filename formatting
 src/style.css       light theme
 ```

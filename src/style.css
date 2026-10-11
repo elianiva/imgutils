@@ -558,6 +558,241 @@ input[type="range"] {
   white-space: nowrap;
 }
 
+/* Mode tabs -------------------------------------------------------------- */
+
+.tabs {
+  display: flex;
+  border: 1px solid var(--line-strong);
+}
+
+.tab {
+  padding: 0 14px;
+  height: 40px;
+  border: 0;
+  background: var(--bg);
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab + .tab {
+  border-left: 1px solid var(--line-strong);
+}
+
+.tab.is-active {
+  background: var(--ink);
+  color: var(--invert);
+}
+
+body[data-mode="single"] .only-collage {
+  display: none;
+}
+
+body[data-mode="collage"] .only-single {
+  display: none;
+}
+
+/* Collage builder -------------------------------------------------------- */
+
+.collage-builder {
+  display: grid;
+  gap: 4px;
+}
+
+.collage-preview {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+#collage-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line-strong);
+  background: var(--sunken);
+  touch-action: none;
+  cursor: grab;
+}
+
+#collage-canvas:active {
+  cursor: grabbing;
+}
+
+.collage-controls .field-group:first-child {
+  border-top: 0;
+}
+
+.templates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.template-chip {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 8px 4px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  cursor: pointer;
+}
+
+.template-chip:hover {
+  background: var(--sunken);
+}
+
+.template-chip.is-active {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.template-mini {
+  display: grid;
+  gap: 2px;
+  width: 40px;
+  height: 40px;
+  padding: 2px;
+  background: var(--sunken);
+}
+
+.template-mini i {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  background: var(--ink);
+}
+
+.template-label {
+  color: var(--muted);
+  font-size: 10.5px;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.template-chip.is-active .template-label {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.grid-size {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.count {
+  color: var(--muted);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.cell-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cell-actions .btn {
+  flex: 1 1 auto;
+}
+
+.cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cell {
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.cell.is-selected {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.cell.is-drop {
+  border-style: dashed;
+  border-color: var(--ink);
+}
+
+.cell-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 0;
+  background: var(--sunken);
+  cursor: pointer;
+}
+
+.cell-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cell-index {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 2px 6px;
+  background: var(--ink);
+  color: var(--invert);
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--line-strong);
+  font-size: 24px;
+  font-weight: 300;
+}
+
+.cell-buttons {
+  display: flex;
+  border-top: 1px solid var(--line);
+}
+
+.linklike {
+  flex: 1 1 auto;
+  padding: 6px 2px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.linklike:hover {
+  color: var(--ink);
+  background: var(--sunken);
+}
+
+#collage-save {
+  width: 100%;
+}
+
 /* Desktop ---------------------------------------------------------------- */
 
 @media (min-width: 900px) {
@@ -627,6 +862,75 @@ input[type="range"] {
   .results {
     grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
     gap: 14px;
+  }
+
+  .collage-builder {
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 360px);
+    gap: 20px;
+    align-items: start;
+  }
+
+  .collage-preview {
+    position: sticky;
+    top: calc(var(--topbar-h) + 20px);
+  }
+
+  /* Collage mode fits the viewport: the page never scrolls, the canvas
+     shrinks into the free space, and only the controls column scrolls. */
+  body[data-mode="collage"] .layout {
+    height: calc(100vh - var(--topbar-h));
+    height: calc(100dvh - var(--topbar-h));
+    overflow: hidden;
+  }
+
+  body[data-mode="collage"] .panel {
+    height: 100%;
+    max-height: none;
+  }
+
+  body[data-mode="collage"] .workspace {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body[data-mode="collage"] #collage-view {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  body[data-mode="collage"] .collage-builder {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  body[data-mode="collage"] .collage-preview {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    align-content: stretch;
+  }
+
+  body[data-mode="collage"] #collage-canvas {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 100%;
+    max-height: 100%;
+    min-height: 0;
+    margin: auto;
+  }
+
+  body[data-mode="collage"] .collage-controls {
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
   }
 
   .preview {
